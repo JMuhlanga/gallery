@@ -1,4 +1,29 @@
 pipeline{
     agent any
+    stages{
+        stage('Clone Repository'){
+            steps {
+
+            }
+        }
+
+        stage('Install Node & NPM'){
+            steps {
+                sh ''
+            }
+        }
+
+        stage('Install Dependencies'){
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Run Tests'){
+            steps {
+
+            }
+        }
+    }
     
 }
