@@ -1,0 +1,82 @@
+pipeline{
+    agent any
+    environment {
+        RENDER_API_KEY = credentials('rnd_MKhps9VLaU6Ypwu3yszgYr5ixKrr')
+        RENDER_APP_NAME = 'gallery'
+        SLACK_CHANEL = 'muhlangakupekaip1'
+    }
+
+    tools {
+        nodejs "NodeJs"
+    }
+
+    stages{
+        stage('Clone IP1 - Gallery Repository'){
+            steps {
+                git 'https://github.com/JMuhlanga/gallery.git'
+            }
+        }
+
+        stage('Install Dependencies'){
+            steps {
+                echo 'Installing Project Dependencies'
+                sh 'npm install'
+            }
+        }
+
+        stage('Install mocha and chai') {
+            steps {
+                echo 'Installing other dependencies...'
+                sh 'npm install --save-dev mocha chai chai-http'
+            }
+        }
+
+        stage('Run Tests'){
+            steps {
+                echo 'Running NPM test'
+                sh 'npm test'
+            }
+        }
+
+        stage('Build App') {
+            steps {
+                echo 'Building Application'
+                sh 'npm run build'
+            }
+        }
+
+        stage('Start Application'){
+            steps {
+                echo 'Starting Gallery Application'
+                sh 'npm start'
+            }
+        }
+
+        stage('Deploy to Render') {
+            steps {
+                script {
+                    def response = sh(script: """curl -X POST -H "Authorization: Bearer ${RENDER_API_KEY}" \
+                                                 -d '{}' https://api.render.com/v1/services/${RENDER_APP_NAME}/deploys""",
+                                      returnStdout: true)
+                    echo "Deploy response: ${response}"
+                }
+            }
+        }
+        post {
+            success {
+                mail to: 'jose.muhlanga1@student.moringaschool.com',
+                    subject: 'Pipeline has Succeeded',
+                    body: 'Pipeline has completed successfully!!.'
+
+            }
+        
+            failure {
+                mail to: 'jose.muhlanga1@student.moringaschool.com',
+                    subject: 'Pipeline has Failed',
+                    body: 'Pipeline has failed. Please investigate!!.'
+            }
+        }
+        
+    }
+    
+}
