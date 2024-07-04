@@ -77,3 +77,18 @@ pipeline {
             }
         }
     }
+
+    post {
+        success {
+            mail to: 'jose.muhlanga1@student.moringaschool.com',
+            subject: 'The Pipeline has Succeeded',
+            body: 'The Jenkins Pipeline has completed successfully!!'
+        }
+        
+        failure {
+            mail to: 'jose.muhlanga1@student.moringaschool.com',
+            subject: 'The Pipeline has Failed',
+            body: 'The Jenkins Pipeline has failed. Please investigate!!'
+        }
+    }
+}
