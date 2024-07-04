@@ -1,7 +1,6 @@
 pipeline{
     agent any
     environment {
-        RENDER_API_KEY = credentials('rnd_fIIvzAgEz9gAqIkcPuEYYirZDHrg')
         RENDER_APP_NAME = 'gallery'
         SLACK_CHANEL = 'muhlangakupekaip1'
     }
@@ -55,13 +54,14 @@ pipeline{
         stage('Deploy to Render') {
             steps {
                 script {
-                    def response = sh(script: """curl -X POST -H "Authorization: Bearer ${RENDER_API_KEY}" \
-                                                 -d '{}' https://api.render.com/v1/services/${RENDER_APP_NAME}/deploys""",
+                    def response = sh(script: """curl -X POST -H "Authorization: Bearer rnd_D1KiyPxQtKMFQMOnj4dEh0ZiHwxB" \
+                                                 -d '{}' https://api.render.com/v1/services/gallery/deploys""",
                                       returnStdout: true)
                     echo "Deploy response: ${response}"
                 }
             }
         }
+        
         post {
             success {
                 mail to: 'jose.muhlanga1@student.moringaschool.com',
