@@ -1,7 +1,7 @@
 pipeline{
     agent any
     environment {
-        RENDER_API_KEY = credentials('rnd_MKhps9VLaU6Ypwu3yszgYr5ixKrr')
+        RENDER_API_KEY = credentials('rnd_fIIvzAgEz9gAqIkcPuEYYirZDHrg')
         RENDER_APP_NAME = 'gallery'
         SLACK_CHANEL = 'muhlangakupekaip1'
     }
