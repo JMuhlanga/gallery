@@ -1,36 +1,37 @@
-pipeline{
+pipeline {
     agent any
-    environment {
-        RENDER_APP_NAME = 'gallery'
-        SLACK_CHANEL = 'muhlangakupekaip1'
-    }
 
     tools {
         nodejs "NodeJs"
     }
-
-    stages{
-        stage('Clone IP1 - Gallery Repository'){
+    
+    environment {
+        RENDER_API_KEY = 'rnd_D1KiyPxQtKMFQMOnj4dEh0ZiHwxB'
+        RENDER_APP_NAME = 'gallery'
+    }
+    
+    stages {
+        stage('Clone IP1 - Gallery Repository') {
             steps {
                 git 'https://github.com/JMuhlanga/gallery.git'
             }
         }
 
-        stage('Install Dependencies'){
+        stage('Install Dependencies') {
             steps {
                 echo 'Installing Project Dependencies'
                 sh 'npm install'
             }
         }
 
-        stage('Install mocha and chai') {
+        stage('Install Mocha and Chai') {
             steps {
                 echo 'Installing other dependencies...'
                 sh 'npm install --save-dev mocha chai chai-http'
             }
         }
 
-        stage('Run Tests'){
+        stage('Run Tests') {
             steps {
                 echo 'Running NPM test'
                 sh 'npm test'
@@ -44,39 +45,35 @@ pipeline{
             }
         }
 
-        stage('Start Application'){
+        stage('Start Application') {
             steps {
                 echo 'Starting Gallery Application'
-                sh 'npm start'
+                sh 'npm start &'
+                sleep 10
             }
         }
-
+        
         stage('Deploy to Render') {
             steps {
                 script {
-                    def response = sh(script: """curl -X POST -H "Authorization: Bearer rnd_D1KiyPxQtKMFQMOnj4dEh0ZiHwxB" \
-                                                 -d '{}' https://api.render.com/v1/services/gallery/deploys""",
+                    def branch = "master"
+                    def envVars = '{"NODE_ENV": "production"}'
+
+                    def response = sh(script: """curl -X POST \
+                                                 -H "Authorization: Bearer ${RENDER_API_KEY}" \
+                                                 -H "Content-Type: application/json" \
+                                                 -d '{\"branch\": \"${branch}\", \"env\": ${envVars}}' \
+                                                 https://api.render.com/v1/services/${RENDER_APP_NAME}/deploys""",
                                       returnStdout: true)
                     echo "Deploy response: ${response}"
                 }
             }
         }
         
-        post {
-            success {
-                mail to: 'jose.muhlanga1@student.moringaschool.com',
-                    subject: 'Pipeline has Succeeded',
-                    body: 'Pipeline has completed successfully!!.'
-
-            }
-        
-            failure {
-                mail to: 'jose.muhlanga1@student.moringaschool.com',
-                    subject: 'Pipeline has Failed',
-                    body: 'Pipeline has failed. Please investigate!!.'
+        stage('Clean Up') {
+            steps {
+                echo 'Stopping Gallery Application'
+                sh 'pkill -f "npm start"'
             }
         }
-        
     }
-    
-}
