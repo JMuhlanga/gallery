@@ -1,0 +1,125 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs "NodeJs"
+    }
+    
+    environment {
+        RENDER_API_KEY = 'rnd_D1KiyPxQtKMFQMOnj4dEh0ZiHwxB'
+        RENDER_APP_NAME = 'gallery'
+
+        
+        EMAIL_BODY = 
+
+        """
+
+            <p>EXECUTED: Job <b>\'${env.JOB_NAME}:${env.BUILD_NUMBER})\'</b></p>
+
+            <p>
+
+            View console output at 
+
+            "<a href="${env.BUILD_URL}">${env.JOB_NAME}:${env.BUILD_NUMBER}</a>"
+
+            </p> 
+
+            <p><i>(Build log is attached.)</i></p>
+
+        """
+
+        EMAIL_SUBJECT_SUCCESS = "Status: 'SUCCESS' -Job \'${env.JOB_NAME}:${env.BUILD_NUMBER}\'" 
+
+        EMAIL_SUBJECT_FAILURE = "Status: 'FAILURE' -Job \'${env.JOB_NAME}:${env.BUILD_NUMBER}\'" 
+
+        EMAIL_RECEPIENT = 'jose.muhlanga1@student.moringaschool.com'
+    }
+    
+    stages {
+        stage('Clone IP1 - Gallery Repository') {
+            steps {
+                git 'https://github.com/JMuhlanga/gallery.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo 'Installing Project Dependencies'
+                sh 'npm install'
+            }
+        }
+
+        stage('Install Mocha and Chai') {
+            steps {
+                echo 'Installing other dependencies...'
+                sh 'npm install --save-dev mocha chai chai-http'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Running NPM test'
+                sh 'npm test'
+            }
+        }
+
+        stage('Build App') {
+            steps {
+                echo 'Building Application'
+                sh 'npm run build'
+            }
+        }
+
+        stage('Start Application') {
+            steps {
+                echo 'Starting Gallery Application'
+                sh 'npm start &'
+                sleep 10
+            }
+        }
+        
+        stage('Deploy to Render') {
+            steps {
+                script {
+                    def branch = "master"
+                    def envVars = '{"NODE_ENV": "production"}'
+
+                    def response = sh(script: """curl -X POST \
+                                                 -H "Authorization: Bearer ${RENDER_API_KEY}" \
+                                                 -H "Content-Type: application/json" \
+                                                 -d '{\"branch\": \"${branch}\", \"env\": ${envVars}}' \
+                                                 https://api.render.com/v1/services/${RENDER_APP_NAME}/deploys""",
+                                      returnStdout: true)
+                    echo "Deploy response: ${response}"
+                }
+            }
+        }
+        
+        stage('Clean Up') {
+            steps {
+                echo 'Stopping Gallery Application'
+                sh 'pkill -f "npm start"'
+            }
+        }
+    }
+
+    post {
+        success {
+            emailext attachLog: true, 
+                body: EMAIL_BODY, 
+
+                subject: EMAIL_SUBJECT_SUCCESS,
+
+                to: EMAIL_RECEPIENT
+        }
+
+        failure {
+            emailext attachLog: true, 
+                body: EMAIL_BODY, 
+
+                subject: EMAIL_SUBJECT_FAILURE, 
+
+                to: EMAIL_RECEPIENT
+        }
+    }
+}
