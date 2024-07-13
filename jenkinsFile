@@ -80,15 +80,32 @@ pipeline {
 
     post {
         success {
-            mail to: 'jose.muhlanga1@student.moringaschool.com',
-            subject: 'The Pipeline has Succeeded',
-            body: 'The Jenkins Pipeline has completed successfully!!'
+            emailext attachLog: true, 
+                body:
+                    """
+                    <p>EXECUTED: Job <b>\'${env.JOB_NAME}:${env.BUILD_NUMBER})\'</b></p>
+                    <p>
+                    View console output at 
+                    "<a href="${env.BUILD_URL}">${env.JOB_NAME}:${env.BUILD_NUMBER}</a>"
+                    </p> 
+                      <p><i>(Build log is attached.)</i></p>
+                    """,
+                subject: "Status: 'SUCCESS' -Job \'${env.JOB_NAME}:${env.BUILD_NUMBER}\'", 
+                to: 'jose.muhlanga1@student.moringaschool.com'
         }
-        
         failure {
-            mail to: 'jose.muhlanga1@student.moringaschool.com',
-            subject: 'The Pipeline has Failed',
-            body: 'The Jenkins Pipeline has failed. Please investigate!!'
+            emailext attachLog: true, 
+                body:
+                    """
+                    <p>EXECUTED: Job <b>\'${env.JOB_NAME}:${env.BUILD_NUMBER})\'</b></p>
+                    <p>
+                    View console output at 
+                    "<a href="${env.BUILD_URL}">${env.JOB_NAME}:${env.BUILD_NUMBER}</a>"
+                    </p> 
+                      <p><i>(Build log is attached.)</i></p>
+                    """,
+                subject: "Status: FAILURE -Job \'${env.JOB_NAME}:${env.BUILD_NUMBER}\'", 
+                to: 'jose.muhlanga1@student.moringaschool.com'
         }
     }
 }
